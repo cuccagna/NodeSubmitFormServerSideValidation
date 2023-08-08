@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./normalize.css" />
+    <link rel="stylesheet" href="./styles.css" />
+    <title>Javascript</title>
+  </head>
+  <body>
+    <nav>
+      <div class="nav-center">
+        <h5>HTTP Methods</h5>
+        <div>
+          <a href="index.html">regular </a>
+          <a href="javascript.html">javascript </a>
+          <a href="javascript2.html">javascript2 </a>
+        </div>
+      </div>
+    </nav>
+    <main>
+      <section>
+        <form>
+          <h3>Javascript Form</h3>
+          <div class="form-row">
+            <label for="name"> enter name </label>
+            <input
+              type="text"
+              name="name"
+              id="name"
+              class="form-input"
+              autocomplete="false"
+            />
+            <small class="form-alert"></small>
+          </div>
+
+          <div class="form-row">
+            <label for="name"> enter email </label>
+            <input
+              type="text"
+              name="email"
+              id="email"
+              class="form-input"
+              autocomplete="false"
+            />
+            <small class="form-alert"></small>
+          </div>
+          <button type="submit" class="block submit-btn">submit</button>
+        </form>
+        <div class="result"></div>
+      </section>
+    </main>
+
+    <script>
+      const form = document.forms[0];
+      const formAlert = document.querySelector(".form-alert");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const urlEncoded = createBodyRequest(form);
+        sendRequest(urlEncoded);
+      });
+
+      async function sendRequest(urlEncoded) {
+        try {
+          const resp = await fetch("http://localhost:4000/login2", {
+            method: "POST",
+            body: urlEncoded,
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+          });
+
+          handleError(resp);
+          let data = await resp.json(); //a json object is returned also if a response with error code is returned
+          handleData(data, resp);
+        } catch (e) {
+          formAlert.textContent = e.getMessage;
+          console.log(e);
+        }
+      }
+
+      function handleData(data, resp) {
+        let fieldName;
+        console.log(data);
+        if (resp.status === 422) {
+          for (let i = 0; i < form.elements.length - 1; i++) {
+            fieldName = form.elements[i].getAttribute("name");
+            if (fieldName in data.data) {
+              form.elements[i].nextElementSibling.textContent =
+                data.data[fieldName];
+            } else {
+              form.elements[i].nextElementSibling.textContent = "";
+            }
+          }
+          //console.error("Errore 422", data);
+        } else {
+          //status 200
+          console.warn("OK", data);
+          deletePreviousError();
+        }
+      }
+
+      function deletePreviousError() {
+        for (let i = 0; i < form.length - 1; i++) {
+          form.elements[i].nextElementSibling.textContent = "";
+        }
+      }
+
+      function handleError(resp) {
+        if (!resp.ok && !(resp.status === 304) && !(resp.status === 422)) {
+          throw new Error(`Error ${resp.status} ${resp.statusText}`);
+        }
+      }
+
+      function createBodyRequest(form) {
+        const formData = new FormData(form); //crea un payload di tipo multipart/form-data
+        //Ma se non hai input type="file"  è più efficiente usare la versione urlEncoded
+        //console.log(new URLSearchParams(formData).toString());
+        return new URLSearchParams(formData).toString();
+      }
+    </script>
+    <!--   <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"
+      integrity="sha512-bZS47S7sPOxkjU/4Bt0zrhEtWx0y0CRkhEp8IckzK+ltifIIE9EMIMTuT/mEzoIMewUINruDBIR/jJnbguonqQ=="
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      const result = document.querySelector(".result");
+
+      const fetchPeople = async () => {
+        try {
+          const { data } = await axios.get("/api/people");
+
+          const people = data.data.map((person) => {
+            return `<h5>${person.name}</h5>`;
+          });
+          result.innerHTML = people.join("");
+        } catch (error) {
+          result.innerHTML = `<div class="alert alert-danger">Can't Fetch Data</div>`;
+        }
+      };
+      fetchPeople();
+      // submit form
+      const btn = document.querySelector(".submit-btn");
+      const input = document.querySelector(".form-input");
+      const formAlert = document.querySelector(".form-alert");
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        const nameValue = input.value;
+
+        try {
+          const { data } = await axios.post("/api/people", { name: nameValue });
+          const h5 = document.createElement("h5");
+          h5.textContent = data.person;
+          result.appendChild(h5);
+        } catch (error) {
+          // console.log(error.response)
+          formAlert.textContent = error.response.data.msg;
+        }
+        input.value = "";
+      });
+    </script> -->
+  </body>
+</html>
